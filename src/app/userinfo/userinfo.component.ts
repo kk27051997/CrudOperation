@@ -17,12 +17,10 @@ gender:string[]=["Male","Female"];
 spinner:boolean=false;
 acceptText:string="your information might be used  futher in other important third party librabies";
 indvEmployee:responsedata;
-employeeDetails:responsedata[];
 neFlag:boolean=false;
 
   ngOnInit(): void {
-  this.spinner=true;
-  this.loadEmployee();
+  
   
   }
 
@@ -31,7 +29,8 @@ neFlag:boolean=false;
   if(!form.value.ID) {
   this.api.addEmployee(form).subscribe(
     ()=>{
-     this.loadEmployee();
+      this.loadEmployee();     
+      this.spinner=false;
      },
     (error:HttpErrorResponse)=>console.log(error)
   );
@@ -45,7 +44,8 @@ neFlag:boolean=false;
      if(this.neFlag){
       this.api.updateEmployee(form).subscribe(
         ()=>{
-         this.loadEmployee();
+        this.loadEmployee();
+        this.spinner=false;
          this.neFlag=false;
          },
         (error:HttpErrorResponse)=>{console.log(error)
@@ -63,23 +63,18 @@ neFlag:boolean=false;
   form.reset();
   }
 
-  loadEmployee(){
-    this.api.getEmployees().subscribe(
-      (value:responsedata[])=> {this.employeeDetails=value
-        this.spinner=false;
-      },
-      
-      (error)=>{console.log(error);
-      this.spinner=false;
-      }
-    );
-  }
+  
   deleteEmployee(id:Number){
     if(confirm("Are you sure do you want to delete")){
     this.spinner=true;
+    if(id==this.employeeForm.value.ID){
+      this.employeeForm.reset();
+      }
     this.api.removeEmployee(id).subscribe(
       ()=>{
         this.loadEmployee();
+        this.spinner=false;
+        
      },
     (error:HttpErrorResponse)=>{console.log(error) 
     this.spinner=false;   
@@ -93,6 +88,7 @@ editEmployee(id:Number){
   this.spinner=true;
   this.api.getEmp(id).subscribe(
     (value:responsedata)=>{
+      this.loadEmployee();
       value['checkbox'] = true;
       this.indvEmployee=value;
       this.employeeForm.setValue(value);
@@ -104,4 +100,16 @@ editEmployee(id:Number){
     }
   );
 }
+
+loadEmployee(){
+    this.api.getEmployees().subscribe(
+      (value:responsedata[])=> {
+     this.api.loadFlag.emit(value);
+      },
+      
+      (error)=>{console.log(error);
+      
+      }
+    );
+  }
 }
